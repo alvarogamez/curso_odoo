@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_helpdesk_ticket_tree" model="ir.ui.view">
+        <field name="name">view.helpdesk_ticket.tree</field>
+        <field name="model">helpdesk.ticket</field>
+        <field name="arch" type="xml">
+            <tree string="Ticket">
+                <field name="name"/>
+                <field name="date" />
+                <field name="state" />
+            </tree>
+        </field>
+    </record>
+    <record id="view_helpdesk_ticket_form" model="ir.ui.view">
+        <field name="name">view.helpdesk_ticket.form</field>
+        <field name="model">helpdesk.ticket</field>
+        <field name="arch" type="xml">
+            <form string="Ticket">
+                <header>
+                    <button string="Asignar" name="do_assign" type="object" states="n"/> 
+                    <button string="En Proceso" name="do_proccess" type="object" states="a"/>
+                    <button string="Pendiente" name="do_pend" type="object" states="a,p"/>
+                    <button string="Finalizar" name="do_resolve" type="object" states="n,a,pen,p"/>
+                    <button string="Cancelar" name="do_cancel" type="object" states="p,pen,a"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                
+                    <group>
+                        <group>
+                            <field name="date"/>
+                            <field name="date_limit"/>
+                        </group>
+                        <group>
+                            <field name="user_id"/>
+                            <field name="assigned"/>
+                            <field name="time"/>
+                            <field name="total"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Description">
+                            <field name="description"/>
+                            <field name="tag_ids"/>
+                        </page>
+                        <page string="Quality">
+                            <label for="action_corrective"/>
+                            <field name="action_corrective"/>
+                            <group string = "Preventive Action">
+                                <field name="action_preventive" nolabel="1"/>
+                            </group>
+                        </page>
+                        <page string="Actions">
+                            <field name="actions_ids"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>
