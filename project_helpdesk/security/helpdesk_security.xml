@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright <YEAR(S)> <AUTHOR(S)>
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+
+    <odoo>
+        <record id="ir_project_helpdesk" model="ir.module.category">
+            <field name="name">Helpdesk</field>
+        </record>
+        <record id="helpdesk_user" model="res.groups">
+            <field name="name">User</field>
+            <field name="category_id" ref="ir_project_helpdesk"/>
+        </record>
+        <record id="helpdesk_manager" model="res.groups">
+            <field name="name">Manager</field>
+            <field name="category_id" ref="ir_project_helpdesk"/>
+            <field name="implied_ids" eval="[(4, ref('helpdesk_user'))]"/>
+            <field name="users" eval="[(4, ref('base.user_root'))]"/>
+        </record>
+    </odoo>

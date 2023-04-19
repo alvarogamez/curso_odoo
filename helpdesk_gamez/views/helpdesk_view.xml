@@ -11,12 +11,14 @@
             </tree>
         </field>
     </record>
+
     <record id="view_helpdesk_ticket_form" model="ir.ui.view">
         <field name="name">view.helpdesk_ticket.form</field>
         <field name="model">helpdesk.ticket</field>
         <field name="arch" type="xml">
             <form string="Ticket">
                 <header>
+                    <!--string: nombre boton, name: nombre de la funcion, type: tipo de boton(el mas simple), states: depende solo de eso(attr para mas de una condicion)-->
                     <button string="Asignar" name="do_assign" type="object" states="n"/> 
                     <button string="En Proceso" name="do_proccess" type="object" states="a"/>
                     <button string="Pendiente" name="do_pend" type="object" states="a,p"/>
@@ -33,13 +35,15 @@
                 
                     <group>
                         <group>
+                            <field name="partner_id" context="{'default_is_company':False,'default_user_id':user_id}" domain="[('is_company','=', False)]"/>
                             <field name="date"/>
                             <field name="date_limit"/>
                         </group>
                         <group>
-                            <field name="user_id"/>
+                        <!--options para campos o2m depende de la opcion te deja crear o lo que sea-->
+                            <field name="user_id" options="{'no_create':True, 'no_open':True}"/>
                             <field name="assigned"/>
-                            <field name="time"/>
+                            <field name="time" widget="float_time"/>
                             <field name="total"/>
                         </group>
                     </group>
@@ -47,7 +51,14 @@
                     <notebook>
                         <page string="Description">
                             <field name="description"/>
-                            <field name="tag_ids"/>
+                            <group>
+                                <field name="tag_name"/>
+                                <button string="Create Tag" name="create_tag" type="object"/>
+                                <!--<button string="Create OP2 Tag" name="%-('helpdesk_gamez.action_new_tag')d" type="action" context="{'default_name': self.tag_name,}"/> /para formas sencillas si , pero no deja busquedas ni context potentes-->
+                            </group>
+                            <!--context abre segun el form que se quiera, domain filtra las opciones de crear en base a algo-->
+                            <field name="tag_ids" context="{'form_view_ref':'helpdesk_gamez.view_helpdesk_ticket_tag_simple_form'}" 
+                                options="{'no_create':True}" domain="[('public','=',True)]"/>
                         </page>
                         <page string="Quality">
                             <label for="action_corrective"/>
@@ -57,11 +68,117 @@
                             </group>
                         </page>
                         <page string="Actions">
-                            <field name="actions_ids"/>
+                            <!--ojo con el context defaul solo funciona con o2m no en el campo que hereda-->
+                            <field name="actions_ids" context="{'default_date':date}">
+                                <tree editable="bottom">
+                                    <field name="name"/>
+                                    <field name="date"/>
+                                    <field name="time"/>
+                                </tree>
+                                <form>
+                                    <group string = "action">
+                                        <field name="name"/>
+                                        <field name="date"/>
+                                    </group>
+                                </form>
+                            </field>
                         </page>
                     </notebook>
                 </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids" options="{'post_refresh': 'recipients'}"/>
+                </div>
             </form>
         </field>
     </record>
+    <!--la vista search es para las busquedas y filtros-->
+    <record id="view_helpdesk_ticket_search" model="ir.ui.view">
+        <field name="name">view.helpdesk_ticket.search</field>
+        <field name="model">helpdesk.ticket</field>
+        <field name="arch" type="xml">
+            <search string="Ticket">
+                <field name="name"/>
+                <field name="user_id"/>
+                <separator/>
+                <filter string='Asignados con' name="assigned" domain="[('user_id', '!=', False)]"/>
+                <filter string='Sin fecha limite' name="date_limit" domain="[('date_limit', '!=', False)]"/>
+                <separator/>
+                <filter string="Fecha limite" name="date_limit" context="{'group_by':'date_limit'}"/>
+                <filter string="Usuario" name="user_id" context="{'group_by':'user_id'}"/>
+            </search>
+        </field>
+    </record>
+    <!--las vistas deben ir puestas en view_mode : de los menus -->
+    <record id="view_helpdesk_ticket_pivot" model="ir.ui.view">
+        <field name="name">view.helpdesk_ticket.pivot</field>
+        <field name="model">helpdesk.ticket</field>
+        <field name="arch" type="xml">
+            <pivot string="Timesheet">
+                <field name="user_id" type="row"/>
+                <field name="date" interval="month" type="col"/>
+                <field name="time" type="measure" widget="float_time"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_helpdesk_ticket_graph" model="ir.ui.view">
+        <field name="name">view.helpdesk_ticket.graph</field>
+        <field name="model">helpdesk.ticket</field>
+        <field name="arch" type="xml">
+            <graph string="Ticket">
+                <field name="user_id"/>
+                <field name="time" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_helpdesk_ticket_calendar" model="ir.ui.view">
+        <field name="name">view.helpdesk_ticket.calendar</field>
+        <field name="model">helpdesk.ticket</field>
+        <field name="arch" type="xml">
+            <calendar string="Ticket" date_start="date" color="user_id" hide_time="true" event_limit="5">
+                <field name="user_id" avatar_field="image_128"/>
+                <field name="name"/>
+                <field name="user_id" filters="1" invisible="1"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="view_helpdesk_ticket_kanban" model="ir.ui.view">
+        <field name="name">view.helpdesk_ticket.kanban</field>
+        <field name="model">helpdesk.ticket</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="user_id">
+                <field name="activity_ids"/>
+                <field name="activity_state"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="oe_kanban_content oe_kanban_global_click">
+                            <div class="o_kanban_record_title">
+                                    <strong><field name="name"/></strong>
+                            </div> 
+                            
+                            <div class="o_kanban_record_subtitle">
+                                <field name="date"/>
+                                <field name="time" widget="float_time"/>
+                            </div>
+
+                            <div class="oe_kanban_bottom_left">
+                                <div class="o_kanban_inline_block">
+                                    <field name="activity_ids" widget="kanban_activity"/>
+                                </div>
+                            </div>
+
+                            <div class="oe_kanban_bottom_right">
+                                    <field name="user_id" widget="many2one_avatar_user"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
 </odoo>

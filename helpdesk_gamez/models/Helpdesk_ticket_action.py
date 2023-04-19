@@ -6,6 +6,7 @@ class HelpdeskTicketAction(models.Model):
     
     name = fields.Char() # string no necesario (se duplica)
     date = fields.Date()
+    time = fields.Float(string='Time')
 
     #campos relacionales
     ticket_id = fields.Many2one(
